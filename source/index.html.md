@@ -8,8 +8,7 @@ language_tabs: # must be one of https://git.io/vQNgJ
   - javascript
 
 toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
-  - <a href='https://github.com/slatedocs/slate'>Documentation Powered by Slate</a>
+  - <a href='http://kaspr.fr'>Sign Up for a Developer Key</a>
 
 includes:
   - errors
@@ -19,221 +18,528 @@ search: true
 
 # Introduction
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Welcome to the Kaspr API! You can use our API to access Kaspr API endpoints, which can get information on various , kittens, and breeds in our database.
 
-We have language bindings in Shell, Ruby, Python, and JavaScript! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
 
-This example API documentation page was created with [Slate](https://github.com/slatedocs/slate). Feel free to edit it and use it as a base for your own API's documentation.
 
 # Authentication
 
-> To authorize, use this code:
 
-```ruby
-require 'kittn'
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
+Kaspr uses Bearer API keys to allow access to the API. You can register a new API key at our [developer portal](http://kaspr.fr).
 
-```python
-import kittn
+Kaspr expects for the API key to be included in all API requests to the server in a header that looks like the following:
 
-api = kittn.authorize('meowmeowmeow')
-```
-
-```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
+`Authorization: Bearer YOUR-API-KEY-HERE`
 
 <aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
+You must replace <code>YOUR-API-KEY-HERE</code> with your personal API key.
 </aside>
 
-# Kittens
+# Rate limiting
 
-## Get All Kittens
 
-```ruby
-require 'kittn'
+Kaspr allows a certain number requests per hour sent from a single key. The API Key will be blocked after passing the limit.
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
+If blocked, the access will be reset with the API Key after a certain amount of time.
+
+Information about the the rate limiting will be provided in the response header of every request:
+
+`X-RateLimit-Limit: max number of request per hour `<br><br>
+`X-RateLimit-Remaining: number of remaining requests before reset` <br><br>
+`X-RateLimit-Reset: time in ms until reset`
+
+# Credits
+
+
+Kaspr public API shares the same credits system as in the web application.
+
+The user will will charged a certain amount of credits after requests.
+
+Information about the the rate limiting will be provided in the response header of every request except the  :
+
+`Decreased-Credits: amount ofcredits used for the request`<br><br>
+`Remaining-Credits: amount of credits left`
+
+# Keys
+
+## verifyKey
 
 ```python
-import kittn
+import requests
 
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
+headers = {
+    'Authorization': 'YOUR-API-KEY-HERE',
+}
+
+response = requests.get('http://developer.kaspr.fr/keys/verifyKey', headers=headers)
 ```
 
 ```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
+curl "http://developer.kaspr.fr/keys/verifyKey"
+  -H "Authorization: YOUR-API-KEY-HERE"
+```
+
+```ruby
+require 'net/http'
+require 'uri'
+
+uri = URI.parse("http://developer.kaspr.fr/keys/verifyKey")
+request = Net::HTTP::Get.new(uri)
+request["Authorization"] = "YOUR-API-KEY-HERE"
+
+req_options = {
+  use_ssl: uri.scheme == "https",
+}
+
+response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+  http.request(request)
+end
+
+# response.code
+# response.body
 ```
 
 ```javascript
-const kittn = require('kittn');
+var request = require('request');
 
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
+var headers = {
+    'Authorization': 'YOUR-API-KEY-HERE'
+};
+
+var options = {
+    url: 'http://developer.kaspr.fr/keys/verifyKey',
+    headers: headers
+};
+
+function callback(error, response, body) {
+    if (!error && response.statusCode == 200) {
+        console.log(body);
+    }
+}
+
+request(options, callback);
 ```
 
-> The above command returns JSON structured like this:
+> > The above command returns authenticated user's email:
+
 
 ```json
-[
-  {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
-  },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
-]
+{
+  "user": "email@adress"
+}
 ```
 
-This endpoint retrieves all kittens.
+This endpoint verifies if our API Key is valid.
 
 ### HTTP Request
 
-`GET http://example.com/api/kittens`
+`GET http://developer.kaspr.io/keys/verifyKey`
 
-### Query Parameters
 
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
 
 <aside class="success">
-Remember — a happy kitten is an authenticated kitten!
+Remember — You have to be authenticated!
 </aside>
 
-## Get a Specific Kitten
+
+# Leads
+
+## Get Lead
+```shell
+curl -X POST
+  -H "Authorization: YOUR-API-KEY-HERE"
+  -H "Content-Type: application/json" 
+  --data '{"id":"linkedinId","name":"Linkedin Name"}'  
+  "http://developer.kaspr.fr/profile/profile"
+```
 
 ```ruby
-require 'kittn'
+require 'net/http'
+require 'uri'
+require 'json'
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
+uri = URI.parse("http://developer.kaspr.fr/profile/profile")
+request = Net::HTTP::Post.new(uri)
+request.content_type = "application/json"
+request["Authorization"] = "YOUR-API-KEY-HERE"
+request.body = JSON.dump({
+  "id" => "linkedinId",
+  "name" => "Linkedin Name"
+})
+
+req_options = {
+  use_ssl: uri.scheme == "https",
+}
+
+response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+  http.request(request)
+end
+
+# response.code
+# response.body
 ```
 
 ```python
-import kittn
+import requests
 
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
+headers = {
+    'Authorization': 'YOUR-API-KEY-HERE',
+    'Content-Type': 'application/json',
+}
+
+data = '{"id":"linkedinId","name":"Linkedin Name"}'
+
+response = requests.post('http://developer.kaspr.fr/profile/profile', headers=headers, data=data)
 ```
 
-```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
-```
+
 
 ```javascript
-const kittn = require('kittn');
+var request = require('request');
 
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
+var headers = {
+    'Authorization': 'YOUR-API-KEY-HERE',
+    'Content-Type': 'application/json'
+};
+
+var dataString = '{"id":"linkedinId","name":"Linkedin Name"}';
+
+var options = {
+    url: 'http://developer.kaspr.fr/profile/profile',
+    method: 'POST',
+    headers: headers,
+    body: dataString
+};
+
+function callback(error, response, body) {
+    if (!error && response.statusCode == 200) {
+        console.log(body);
+    }
+}
+
+request(options, callback);
+
 ```
 
-> The above command returns JSON structured like this:
+> > The above command returns JSON with an object "profile" as an object conaining the information of the prospect
+
 
 ```json
 {
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
+    "profile": {
+        "id": "Casper-Linkedin",
+        "name": "Casper The Ghost",
+        "firstName": "Casper",
+        "lastName": "The Ghost",
+        "emails": [
+            {
+                "email": "Casper@example.com",
+                "valid": true
+            },
+            {
+                "email": "Casper@gmail.com",
+                "valid": null
+            }
+        ],
+        "currentProEmails": [
+            "Casper@example.com"
+        ],
+        "currentPersonalEmails": [
+            "Casper@gmail.com"
+        ],
+        "phones": [],
+        "location": "Home",
+        "title": "Ghost",
+        "companyName": "Home",
+        "fetchedAt": 1588682813481,
+        "currentProEmail": "Casper@example.com",
+        "processingTime": 3.885,
+        "currentEmail": "Casper@example.com"
+    }
 }
 ```
 
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
+This endpoint retrieves emails or phone of a certain prospect or lead.
 
 ### HTTP Request
 
-`GET http://example.com/kittens/<ID>`
+`POST http://developer.kaspr.io/profile/profile`
 
-### URL Parameters
+### body Parameters
 
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to retrieve
+Parameter | Required | Type | Description | Default
+--------- | -------- | ---- | ----------- | -------
+id | true | string | represents the Linkedin ID of the lead "https://www.linkedin.com/in/id-here/" | Na
+name | true | string | represents the likedin name of the lead | Na
+isPhoneRequired | false | boolean | If set to true, the data will be sure to include phone numbers. Else, no data will be returned. | false
 
-## Delete a Specific Kitten
+<aside class="success">
+Remember — You have to be authenticated!
+</aside>
+
+
+
+# Company
+
+## Get Pattern
 
 ```ruby
-require 'kittn'
+require 'net/http'
+require 'uri'
+require 'json'
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
+uri = URI.parse("http://developer.kaspr.fr/company/domainPattern")
+request = Net::HTTP::Post.new(uri)
+request.content_type = "application/json"
+request["Authorization"] = "YOUR-API-KEY-HERE"
+request.body = JSON.dump({
+  "domain" => "company@domain"
+})
+
+req_options = {
+  use_ssl: uri.scheme == "https",
+}
+
+response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+  http.request(request)
+end
+
+# response.code
+# response.body
 ```
 
 ```python
-import kittn
+import requests
 
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
+headers = {
+    'Authorization': 'YOUR-API-KEY-HERE',
+    'Content-Type': 'application/json',
+}
+
+data = '{"domain":"company@domain"}'
+
+response = requests.post('http://developer.kaspr.fr/company/domainPattern', headers=headers, data=data)
+
 ```
 
 ```shell
-curl "http://example.com/api/kittens/2"
-  -X DELETE
-  -H "Authorization: meowmeowmeow"
+curl -X POST 
+  -H "Authorization: YOUR-API-KEY-HERE"
+  -H "Content-Type: application/json" 
+  --data '{"domain":"company@domain"}'  
+  "http://developer.kaspr.fr/company/domainPattern"
 ```
 
 ```javascript
-const kittn = require('kittn');
+var request = require('request');
 
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
+var headers = {
+    'Authorization': 'YOUR-API-KEY-HERE',
+    'Content-Type': 'application/json'
+};
+
+var dataString = '{"domain":"company@domain"}';
+
+var options = {
+    url: 'http://developer.kaspr.fr/company/domainPattern',
+    method: 'POST',
+    headers: headers,
+    body: dataString
+};
+
+function callback(error, response, body) {
+    if (!error && response.statusCode == 200) {
+        console.log(body);
+    }
+}
+
+request(options, callback);
+
 ```
 
-> The above command returns JSON structured like this:
+> The above command returns JSON with an array "pattern" as a list of pattern with the score of validity of each one:
 
 ```json
 {
-  "id": 2,
-  "deleted" : ":("
+    "patterns": [
+        {
+            "pattern": "{f}{last}@example.com",
+            "score": 0.64560313367866
+        },
+        {
+            "pattern": "{first}{last}@example.com",
+            "score": 0.583964853062278
+        },
+        {
+            "pattern": "{first}.{last}@example.com",
+            "score": 0.574788995391232
+        },
+        {
+            "pattern": "{first}-{last}@example.com",
+            "score": 0.477391044114061
+        }
+    ]
 }
 ```
 
-This endpoint deletes a specific kitten.
+This endpoint retrieves the patterns of emails of a certain company.
 
 ### HTTP Request
 
-`DELETE http://example.com/kittens/<ID>`
+`POST http://developer.kaspr.io/company/domainPattern`
+
+### body Parameters
+
+Parameter | Required | Type | Description | Default
+--------- | -------- | ---- | ----------- | -------
+domain | true | string | domain of a company | Na
+
+<aside class="success">
+Remember — You have to be authenticated!
+</aside>
+
+## Get Employees
+
+```ruby
+require 'net/http'
+require 'uri'
+require 'json'
+
+uri = URI.parse("http://developer.kaspr.fr/company/domainEmployees")
+request = Net::HTTP::Post.new(uri)
+request.content_type = "application/json"
+request["Authorization"] = "YOUR-API-KEY-HERE"
+request.body = JSON.dump({
+  "domain" => "company@domain",
+  "contactsNumberLimit" => 10,
+  "isPhoneRequired" => true
+})
+
+req_options = {
+  use_ssl: uri.scheme == "https",
+}
+
+response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+  http.request(request)
+end
+
+# response.code
+# response.body
+```
+
+```python
+import requests
+
+headers = {
+    'Authorization': 'YOUR-API-KEY-HERE',
+    'Content-Type': 'application/json',
+}
+
+data = '{"domain":"company@domain","contactsNumberLimit":10,"isPhoneRequired":true}'
+
+response = requests.post('http://developer.kaspr.fr/company/domainEmployees', headers=headers, data=data)
+
+```
+
+```shell
+curl -X POST 
+  -H "Authorization: YOUR-API-KEY-HERE"
+  -H "Content-Type: application/json" 
+  --data '{"domain":"company@domain","contactsNumberLimit":10,"isPhoneRequired":true}'  
+  "http://developer.kaspr.fr/company/domainEmployees"
+```
+
+```javascript
+var request = require('request');
+
+var headers = {
+    'Authorization': 'YOUR-API-KEY-HERE',
+    'Content-Type': 'application/json'
+};
+
+var dataString = '{"domain":"company@domain","contactsNumberLimit":10,"isPhoneRequired":true}';
+
+var options = {
+    url: 'http://developer.kaspr.fr/company/domainEmployees',
+    method: 'POST',
+    headers: headers,
+    body: dataString
+};
+
+function callback(error, response, body) {
+    if (!error && response.statusCode == 200) {
+        console.log(body);
+    }
+}
+
+request(options, callback);
+
+```
+
+> > The above command returns JSON with an array "employees" as a list where each object contains the information of an employee:
+
+
+```json
+{
+    "employees": [
+        {
+            "firstName": "Casper",
+            "lastName": "The Ghost",
+            "name": "Casper The Gost",
+            "company": "Home",
+            "job": "Ghost",
+            "email": "Casper@example.com",
+            "emails": [
+                {
+                    "email": "Casper@example.com",
+                    "valid": null
+                }
+            ],
+            "phones": [ "+33 0 00 00 00 00"],
+            "phone": "+33 0 00 00 00 00",
+            "location": "Home"
+        },
+        {
+            "firstName": "Kathleen",
+            "lastName": "Harvey",
+            "name": "Kathleen Harvey",
+            "company": "Home",
+            "job": "Kid",
+            "email": "Kathleen-Harvey@example.com",
+            "emails": [
+                {
+                    "email": "Kathleen-Harvey@example.com",
+                    "valid": null
+                }
+            ],
+            "phones": [
+                "+33 0 00 00 00 00"
+            ],
+            "phone": "+33 0 00 00 00 00",
+            "location": "Home"
+        }
+    ]
+}
+```
+
+This endpoint retrieves the list of employees of a certain company.
+
+
+### HTTP Request
+
+`POST http://developer.kaspr.io/company/domainEmployees`
 
 ### URL Parameters
 
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to delete
+Parameter | Required |Type | Description | Default
+--------- | -------- |---- | ----------- | -------
+domain |  true |string | domain of a company | Na
+contactsNumberLimit | false | integer | maximum number of employees to retrieve | 5
+isPhoneRequired | false | boolean | If set to true, the data will be sure to include phone numbers. Else, no data will be returned. | false
+
+
+<aside class="success">
+Remember — You have to be authenticated!
+</aside>
 
